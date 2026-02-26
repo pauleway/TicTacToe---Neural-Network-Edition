@@ -16,7 +16,7 @@ import csv
 def main():
   print("V 0.7 — Generating training data")
   print("Playing 5,000 games (expert O vs random X)...")
-  X, y = generate_data(num_games=5000, expert_mark='O', use_two_experts=False, seed=42)
+  X, y = generate_data(num_games=5000, seed=42)
   
   with open('training_data.csv', 'w', newline='') as f:
     writer = csv.writer(f)

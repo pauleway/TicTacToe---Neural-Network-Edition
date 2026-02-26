@@ -13,7 +13,7 @@
 This folder is **only about creating the dataset** we need to train a neural network later. No training happens here.
 
 1. Use the Tic-Tac-Toe game and the **PeekAhead** "expert" player from Step 1.
-2. Play many games (expert vs random, or expert vs expert).
+2. Play many games (expert O vs random X).
 3. Every time the expert is about to move, record:
    - **Board state** (encoded as 9 numbers: 1 = my mark, -1 = opponent, 0 = empty)
    - **The move they chose** (as a number 0–8 for the cell)
@@ -28,8 +28,6 @@ the neural network will learn from.
 ---
 
 ## How to run
-
-**Option A — Simple (good for the default homework):**
 
 ```bash
 python main.py
@@ -47,15 +45,7 @@ Next step: Go to 03_train_and_play and train the model on this file.
 
 (Your exact number of samples may vary slightly.)
 
-**Option B — Custom:**
-
-```bash
-# 10,000 games, expert plays O
-python data_generation.py --games 10000 --expert O --out training_data.csv
-
-# Expert on both sides (stronger, more consistent data)
-python data_generation.py --games 10000 --both-experts --out training_data.csv
-```
+To customize (e.g. more games), edit the variables at the top of `data_generation.py` and run `python data_generation.py`.
 
 ---
 
@@ -93,12 +83,11 @@ The reverse: `row = idx // 3`, `col = idx % 3`. Used in Step 3 when the network 
 We need to run many games and, **only when it's the expert's turn**, save (board, move) before the move is played.
 
 ```python
-def play_one_game(game, expert_mark, expert_player, other_player, records):
+def play_one_game(game, expert_player, other_player, records):
 ```
 
 - **`game`** – A fresh `TicTacToeGame()` (empty board).
-- **`expert_mark`** – `'X'` or `'O'`: which side is the expert.
-- **`expert_player`** – The PeekAhead player instance.
+- **`expert_player`** – The PeekAhead player (always plays O).
 - **`other_player`** – The other player (random or another expert).
 - **`records`** – A dict with lists `'boards'` and `'moves'` we append to.
 
@@ -107,7 +96,7 @@ The loop alternates between X and O. For each turn:
 1. **Check if the game is already over** (win or tie). If so, return.
 2. **Ask the current player for a move** with `player.get_move(game)` → `(row, col)`.
 3. **If the current player is the expert**, we record:
-   - **Board** – Encode the board *before* the move using `board_to_vector(game.board, expert_mark)`. That's the "state" the expert saw.
+   - **Board** – Encode the board *before* the move using `board_to_vector(game.board, 'O')`. That's the "state" the expert saw.
    - **Move** – Convert (row, col) to an index with `move_to_index(row, col)`.
    - Append both to `records['boards']` and `records['moves']`.
 4. **Apply the move** with `game.mark_board(mark, row, col)`.
@@ -120,15 +109,13 @@ So every expert move produces one (board vector, move index) pair. We never reco
 ### 3. Running many games: `data_generation.py` — `generate_data`
 
 ```python
-def generate_data(num_games=10_000, expert_mark='O', use_two_experts=False, seed=42):
+def generate_data(num_games=10_000, seed=42):
 ```
 
 - **`num_games`** – How many full games to play.
-- **`expert_mark`** – Which side is the expert (`'X'` or `'O'`).
-- **`use_two_experts`** – If `True`, the other player is also PeekAhead (stronger, more consistent data).
 - **`seed`** – Random seed so runs are reproducible.
 
-We set the random seed, create an **expert** (PeekAhead) and an **other** player (PeekAhead or Random depending on `use_two_experts`). Then we run `num_games` games. For each game we create a new `TicTacToeGame()`, call `play_one_game(...)`, and the `records` dict gets filled with all expert (board, move) pairs across all games.
+We set the random seed, create an **expert** (PeekAhead playing O) and a **random** opponent (X). Then we run `num_games` games. For each game we create a new `TicTacToeGame()`, call `play_one_game(...)`, and the `records` dict gets filled with all expert (board, move) pairs across all games.
 
 At the end we convert the lists to arrays:
 
@@ -143,7 +130,7 @@ We return `X` and `y`. The script's `main()` then saves them to `training_data.c
 
 `main.py` is the simplest path:
 
-1. Call `generate_data(num_games=5000, expert_mark='O', use_two_experts=False, seed=42)`.
+1. Call `generate_data(num_games=5000, seed=42)`.
 2. Save the result to `training_data.csv` with a header row.
 3. Print how many samples were saved and remind you to go to Step 3 next.
 
@@ -166,9 +153,8 @@ So "run `main.py`" = "generate 5,000 games and create `training_data.csv` in one
 
 These are optional experiments — great for exploration or extra credit:
 
-- **Fewer games:** Run with `--games 500`. Then use that smaller dataset in Step 3. Does the network play differently?
-- **More games:** Try `--games 20000`. Does the trained network improve meaningfully?
-- **Both experts:** Try `--both-experts`. Both players use PeekAhead — does the network train on stronger data? Does it play differently?
+- **Fewer games:** Edit `num_games = 500` in `data_generation.py`, run it, then use that smaller dataset in Step 3. Does the network play differently?
+- **More games:** Try `num_games = 20000`. Does the trained network improve meaningfully?
 - **Look at the CSV:** Open `training_data.csv` in a spreadsheet. Find a row where `move = 4` (the center cell). What does the board look like in that row? Does the expert often play the center?
 
 ---

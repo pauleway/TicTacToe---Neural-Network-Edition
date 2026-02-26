@@ -26,5 +26,7 @@ def move_to_index(row, col):
   return row * 3 + col
 
 
-def index_to_move(idx):
-  return idx // 3, idx % 3
+def index_to_move(index):
+  row = index // 3
+  col = index % 3
+  return row, col

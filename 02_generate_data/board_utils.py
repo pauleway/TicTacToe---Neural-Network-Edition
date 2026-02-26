@@ -23,8 +23,10 @@ def board_to_vector(board, my_mark):
 
 
 def move_to_index(row, col):
-  return row * 3 + col
+  return _________________
 
+def index_to_move(index):
+  row = _________________
+  col = _________________
+  return row, col
 
-def index_to_move(idx):
-  return idx // 3, idx % 3
